@@ -94,7 +94,7 @@ interface Stats {
   best: number;
 }
 
-const defaultStats: Stats = { played: 12, wins: 10, streak: 3, best: 6 };
+const defaultStats: Stats = { played: 0, wins: 0, streak: 0, best: 0 };
 
 export default function App() {
   const [started, setStarted] = useState(false);
