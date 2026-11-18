@@ -1,4 +1,4 @@
-# WordLink 🧩 -- Inspired by wordle
+# WordLink 🧩 - Inspired by wordle
 
 **Four clues. One connection. Can you find it?**
 
