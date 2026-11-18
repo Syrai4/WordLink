@@ -1,0 +1,10 @@
+{
+  "description": "Solve daily word-association puzzles across three difficulty levels, use hints, track streaks and scores, and share results while sharpening your vocabulary and critical thinking.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
