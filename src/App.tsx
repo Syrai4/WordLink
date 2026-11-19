@@ -443,7 +443,7 @@ const puzzleNumber =
       </main>
 
       <footer>
-        <span>© 2027 WordLink</span>
+        <span>© 2026 WordLink. All rights reserved.</span>
         <div>
           <button onClick={() => setShowHowToPlay(true)}>How to play</button>
           <button onClick={() => setShowPrivacy(true)}>Privacy</button>
