@@ -125,14 +125,25 @@ export default function App() {
     return [];
   }
 });
-  const [hintVisible, setHintVisible] = useState<boolean>(() => {
+  const [hintsUsed, setHintsUsed] = useState<Record<Difficulty, number>>(() => {
   try {
     const savedGame = localStorage.getItem(gameKey);
-    return savedGame ? JSON.parse(savedGame).hintVisible || false : false;
+    const saved = savedGame ? JSON.parse(savedGame) : null;
+
+    return saved?.hintsUsedByDifficulty || {
+      Easy: 0,
+      Medium: 0,
+      Hard: 0,
+    };
   } catch {
-    return false;
+    return {
+      Easy: 0,
+      Medium: 0,
+      Hard: 0,
+    };
   }
 });
+  const currentHintsUsed = hintsUsed[difficulty];
   const [status, setStatus] = useState<"playing" | "won" | "lost">(() => {
   try {
     const savedGame = localStorage.getItem(gameKey);
@@ -183,11 +194,11 @@ const puzzleNumber =
     JSON.stringify({
       difficulty,
       attempts,
-      hintVisible,
+      hintsUsedByDifficulty: hintsUsed,
       status,
     })
   );
-}, [gameKey, difficulty, attempts, hintVisible, status]);
+}, [gameKey, difficulty, attempts, hintsUsed, status]);
 
   function submitGuess(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -384,12 +395,14 @@ const puzzleNumber =
           </div>
 
           <div className="answer-area">
-            {hintVisible && (
-              <div className="hint-callout">
-                <Icon name="spark" size={17} />
-                {puzzle.hint}
-              </div>
-            )}
+          {hintsUsed[difficulty] > 0 && (
+             <div className="hint-callout">
+              <Icon name="spark" size={17} />
+              {puzzle.hints.slice(0, hintsUsed[difficulty]).map((hint, index) => (
+                <div key={index}>Hint {index + 1}: {hint}</div>
+            ))}
+           </div>
+         )}
             {message && <div className={`game-message ${solved ? "win" : ""}`}>{message}</div>}
             {status !== "playing" && (
                <div className="game-message win">
@@ -419,11 +432,14 @@ const puzzleNumber =
             </form>
             <div className="game-tools">
               <button
-                onClick={() => setHintVisible(true)}
-                disabled={hintVisible || status !== "playing"}
+                onClick={() => setHintsUsed((current) => ({
+                  ...current,
+                  [difficulty]: current[difficulty] + 1,
+                }))}
+                disabled={hintsUsed[difficulty] >= puzzle.hints.length || status !== "playing"}
               >
                 <Icon name="spark" size={17} />
-                {hintVisible ? "Hint revealed" : "Need a hint?"}
+                {hintsUsed[difficulty] > 0 ? "Reveal another hint" : "Need a hint?"}
               </button>
             </div>
             {status !== "playing" && (
