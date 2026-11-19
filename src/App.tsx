@@ -97,12 +97,50 @@ interface Stats {
 const defaultStats: Stats = { played: 0, wins: 0, streak: 0, best: 0 };
 
 export default function App() {
+  const today = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format(new Date());
+
+  const gameKey = `wordlink-game-${today}`;
   const [started, setStarted] = useState(false);
-  const [difficulty, setDifficulty] = useState<Difficulty>("Easy");
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
+  try {
+    const savedGame = localStorage.getItem(gameKey);
+    if (savedGame) {
+      return JSON.parse(savedGame).difficulty || "Easy";
+    }
+    return "Easy";
+  } catch {
+    return "Easy";
+  }
+});
   const [guess, setGuess] = useState("");
-  const [attempts, setAttempts] = useState<string[]>([]);
-  const [hintVisible, setHintVisible] = useState(false);
-  const [status, setStatus] = useState<"playing" | "won" | "lost">("playing");
+  const [attempts, setAttempts] = useState<string[]>(() => {
+  try {
+    const savedGame = localStorage.getItem(gameKey);
+    return savedGame ? JSON.parse(savedGame).attempts || [] : [];
+  } catch {
+    return [];
+  }
+});
+  const [hintVisible, setHintVisible] = useState<boolean>(() => {
+  try {
+    const savedGame = localStorage.getItem(gameKey);
+    return savedGame ? JSON.parse(savedGame).hintVisible || false : false;
+  } catch {
+    return false;
+  }
+});
+  const [status, setStatus] = useState<"playing" | "won" | "lost">(() => {
+  try {
+    const savedGame = localStorage.getItem(gameKey);
+    return savedGame ? JSON.parse(savedGame).status || "playing" : "playing";
+  } catch {
+    return "playing";
+  }
+});
   const [message, setMessage] = useState("");
   const [showStats, setShowStats] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -122,14 +160,7 @@ export default function App() {
     }
   });
 const [showHowToPlay, setShowHowToPlay] = useState(false);
-const today = new Intl.DateTimeFormat("en-CA", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-}).format(new Date());
-
 const puzzle = getDailyPuzzle(today, difficulty);
-
 const dateLabel = new Intl.DateTimeFormat("en-US", {
   month: "long",
   day: "numeric",
@@ -144,16 +175,19 @@ const puzzleNumber =
   ) + 1;
 
   useEffect(() => {
-    setGuess("");
-    setAttempts([]);
-    setHintVisible(false);
-    setStatus("playing");
-    setMessage("");
-  }, [difficulty]);
-
-  useEffect(() => {
     localStorage.setItem("wordlink-stats", JSON.stringify(stats));
   }, [stats]);
+  useEffect(() => {
+  localStorage.setItem(
+    gameKey,
+    JSON.stringify({
+      difficulty,
+      attempts,
+      hintVisible,
+      status,
+    })
+  );
+}, [gameKey, difficulty, attempts, hintVisible, status]);
 
   function submitGuess(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -357,6 +391,11 @@ const puzzleNumber =
               </div>
             )}
             {message && <div className={`game-message ${solved ? "win" : ""}`}>{message}</div>}
+            {status !== "playing" && (
+               <div className="game-message win">
+                 Answer is: <strong>{puzzle.answer}</strong>
+               </div>
+            )}
             <form onSubmit={submitGuess}>
               <label htmlFor="answer">What connects these words?</label>
               <div className="input-row">
